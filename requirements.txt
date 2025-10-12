@@ -7,3 +7,6 @@ pytest
 jupyter
 matplotlib
 seaborn
+fastapi
+uvicorn[standard]
+mlflow
