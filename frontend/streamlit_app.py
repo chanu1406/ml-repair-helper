@@ -144,11 +144,23 @@ if st.button("💰 Get Repair Estimate", type="primary", use_container_width=Tru
         st.error(f"❌ Error: {result['error']}")
     else:
         predicted_cost = result["predicted_cost"]
+        vehicle_value = result.get("estimated_vehicle_value", 0)
+        confidence = result.get("confidence", "medium")
+        reasoning = result.get("reasoning", [])
+        base_prediction = result.get("base_model_prediction")
 
         st.success("✅ Estimate Complete!")
 
+        if reasoning:
+            with st.expander("📝 How we calculated this", expanded=False):
+                for reason in reasoning:
+                    st.write(f"• {reason}")
+                if base_prediction and abs(base_prediction - predicted_cost) > 1000:
+                    st.write(f"• Base model predicted: ${base_prediction:,.2f}")
+                    st.write(f"• Adjusted with business rules to: ${predicted_cost:,.2f}")
+
         st.markdown("---")
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
 
         with col1:
             st.metric(
@@ -157,6 +169,13 @@ if st.button("💰 Get Repair Estimate", type="primary", use_container_width=Tru
             )
 
         with col2:
+            if vehicle_value > 0:
+                st.metric(
+                    "🚗 Est. Vehicle Value",
+                    f"${vehicle_value:,.0f}"
+                )
+
+        with col3:
             if policy_deductable > 0:
                 out_of_pocket = min(predicted_cost, policy_deductable)
                 st.metric(
@@ -164,7 +183,7 @@ if st.button("💰 Get Repair Estimate", type="primary", use_container_width=Tru
                     f"${out_of_pocket:,.2f}"
                 )
 
-        with col3:
+        with col4:
             if predicted_cost > policy_deductable:
                 insurance_pays = predicted_cost - policy_deductable
                 st.metric(

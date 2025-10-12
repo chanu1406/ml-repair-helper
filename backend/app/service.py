@@ -5,6 +5,8 @@ from typing import Optional, Dict, Any
 import joblib
 import pandas as pd
 
+from backend.app.business_rules import apply_business_rules
+
 
 class ModelService:
     def __init__(self):
@@ -30,14 +32,16 @@ class ModelService:
         else:
             self.meta = {}
 
-    def predict(self, input_data: Dict[str, Any]) -> float:
+    def predict(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         if self.model is None:
             raise RuntimeError("Model not loaded. Cannot make predictions.")
 
         df = pd.DataFrame([input_data])
-        prediction = self.model.predict(df)[0]
+        base_prediction = self.model.predict(df)[0]
 
-        return float(prediction)
+        result = apply_business_rules(float(base_prediction), input_data)
+
+        return result
 
     def get_model_info(self) -> Dict[str, Any]:
         return {

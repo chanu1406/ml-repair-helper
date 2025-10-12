@@ -42,16 +42,20 @@ def get_model_info():
         )
 
 
-@app.post("/predict", response_model=PredictResponse, tags=["Predictions"])
+@app.post("/predict", tags=["Predictions"])
 def predict_cost(request: PredictRequest):
     try:
         model_service = get_model_service()
-        predicted_cost = model_service.predict(request.features)
+        result = model_service.predict(request.features)
 
-        return PredictResponse(
-            predicted_cost=predicted_cost,
-            model_version="baseline-v1"
-        )
+        return {
+            "predicted_cost": result["predicted_cost"],
+            "base_model_prediction": result.get("base_model_prediction"),
+            "estimated_vehicle_value": result.get("estimated_vehicle_value"),
+            "confidence": result.get("confidence", "medium"),
+            "reasoning": result.get("reasoning", []),
+            "model_version": "baseline-v1-enhanced"
+        }
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -59,7 +63,7 @@ def predict_cost(request: PredictRequest):
         )
 
 
-@app.post("/predict/cost", response_model=PredictResponse, tags=["Predictions"])
+@app.post("/predict/cost", tags=["Predictions"])
 def predict_cost_legacy(payload: dict):
     features = payload.get("features", payload)
     request = PredictRequest(features=features)
