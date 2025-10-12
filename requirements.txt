@@ -10,3 +10,5 @@ seaborn
 fastapi
 uvicorn[standard]
 mlflow
+streamlit
+requests
