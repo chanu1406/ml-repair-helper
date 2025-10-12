@@ -1,0 +1,6 @@
+{
+  "dataset": "insurance_claims.csv",
+  "target": "total_claim_amount",
+  "mae": 771.8381556194036,
+  "r2": 0.9977317508101632
+}
