@@ -1,0 +1,9 @@
+# model_cost.yaml
+# Parameters for cost model training (quantile/regression)
+model:
+  name: xgboost
+  params:
+    objective: reg:squarederror
+    eta: 0.1
+    max_depth: 6
+    n_estimators: 100

@@ -1,0 +1,23 @@
+name: repairhelper
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.10
+  - pip
+  - numpy
+  - pandas
+  - scikit-learn
+  - xgboost
+  - lightgbm
+  - shap
+  - mlflow
+  - dvc
+  - pip:
+    - fastapi
+    - uvicorn
+    - pydantic
+    - pyarrow
+    - joblib
+    - matplotlib
+    - pillow
+    - sentence-transformers

@@ -1,0 +1,8 @@
+# cost_rules.yaml
+# Minimal schema for cost rules; expand as needed.
+rules:
+  labor_hours_min:
+    door: 1.0
+    bumper: 2.0
+  paint_blend:
+    enabled: true

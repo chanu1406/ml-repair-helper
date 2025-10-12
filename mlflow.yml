@@ -1,0 +1,2 @@
+# mlflow configuration placeholder
+tracking_uri: ./mlruns

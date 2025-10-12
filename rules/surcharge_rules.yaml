@@ -1,0 +1,5 @@
+# surcharge_rules.yaml
+surcharges:
+  state:
+    CA: 0.02
+    NY: 0.03

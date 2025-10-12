@@ -1,0 +1,14 @@
+# features.yaml
+# Define logical feature groups and schema fields for cost and claim models
+features:
+  cost:
+    - age
+    - gender
+    - vehicle_age
+    - vehicle_type
+    - annual_premium
+    - zip_code
+  claim:
+    - age
+    - vehicle_type
+    - num_prior_claims

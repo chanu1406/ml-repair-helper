@@ -1,0 +1,9 @@
+# model_claim.yaml
+# Parameters for claim (approval) classifier
+model:
+  name: lightgbm
+  params:
+    objective: binary
+    learning_rate: 0.05
+    num_leaves: 31
+    n_estimators: 200
