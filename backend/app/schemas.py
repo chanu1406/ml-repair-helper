@@ -20,6 +20,8 @@ class PredictRequest(BaseModel):
             "auto_make": "Saab",
             "auto_model": "92x",
             "auto_year": 2004,
+            "auto_mileage": 75000,  # NEW: Vehicle mileage
+            "vin": "1G1ZD5ST4JF123456",  # NEW: Vehicle VIN (optional but recommended)
             "number_of_vehicles_involved": 1,
             "bodily_injuries": 1,
             "witnesses": 2

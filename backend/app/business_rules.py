@@ -1,52 +1,9 @@
 from typing import Dict, Any
-
-
-VEHICLE_BASE_VALUES = {
-    "BMW": 45000,
-    "Mercedes": 48000,
-    "Audi": 42000,
-    "Lexus": 43000,
-    "Tesla": 50000,
-    "Porsche": 65000,
-    "Chevrolet": 28000,
-    "Ford": 27000,
-    "Toyota": 26000,
-    "Honda": 25000,
-    "Nissan": 24000,
-    "Dodge": 26000,
-    "Jeep": 30000,
-    "Subaru": 27000,
-    "Mazda": 24000,
-    "Volkswagen": 26000,
-    "Hyundai": 23000,
-    "Kia": 22000,
-    "Saab": 25000,
-    "Suburu": 27000,
-    "Accura": 35000,
-}
-
-
-def estimate_vehicle_value(make: str, year: int, model: str = None) -> float:
-    base_value = VEHICLE_BASE_VALUES.get(make, 25000)
-
-    current_year = 2024
-    age = current_year - year
-
-    if age < 0:
-        age = 0
-
-    depreciation_rate = 0.15 if age <= 1 else 0.12
-    annual_depreciation = min(age, 10)
-
-    depreciation_factor = (1 - depreciation_rate) ** annual_depreciation
-    estimated_value = base_value * depreciation_factor
-
-    estimated_value = max(estimated_value, 2000)
-
-    if model and any(x in model.upper() for x in ["M3", "M4", "M5", "AMG", "RS", "GT", "TURBO", "S-LINE"]):
-        estimated_value *= 1.5
-
-    return estimated_value
+from backend.app.enhanced_valuation import (
+    estimate_repair_cost_by_severity,
+    apply_regional_adjustment
+)
+from backend.app.valuation_service import get_vehicle_value
 
 
 def apply_business_rules(
@@ -57,47 +14,59 @@ def apply_business_rules(
     auto_make = features.get("auto_make", "Toyota")
     auto_year = features.get("auto_year", 2010)
     auto_model = features.get("auto_model", "")
+    auto_mileage = features.get("auto_mileage")  # New field
+    vin = features.get("vin")  # New field - VIN for accurate valuation
     incident_severity = features.get("incident_severity", "Minor Damage")
+    collision_type = features.get("collision_type", "")
+    state = features.get("policy_state", features.get("incident_state", "OH"))
 
-    vehicle_value = estimate_vehicle_value(auto_make, auto_year, auto_model)
+    # NEW: Use real market data valuation service
+    # Falls back to hardcoded model if no market data available
+    vehicle_value, value_metadata = get_vehicle_value(
+        vin=vin,
+        make=auto_make,
+        model=auto_model,
+        year=auto_year,
+        mileage=auto_mileage,
+        state=state
+    )
 
-    adjusted_prediction = base_prediction
-    confidence = "medium"
-    reasoning = []
+    severity_cost, severity_reasoning = estimate_repair_cost_by_severity(
+        vehicle_value,
+        incident_severity,
+        collision_type
+    )
 
-    if incident_severity == "Total Loss":
-        adjusted_prediction = vehicle_value * 0.85
+    adjusted_prediction, regional_reasoning = apply_regional_adjustment(severity_cost, state)
+
+    model_confidence_range = abs(base_prediction - adjusted_prediction) / adjusted_prediction
+    if model_confidence_range < 0.15:
         confidence = "high"
-        reasoning.append(f"Total loss adjusted to vehicle value (~{vehicle_value:,.0f})")
+    elif model_confidence_range < 0.35:
+        confidence = "medium"
+    else:
+        confidence = "low"
 
-    elif incident_severity == "Major Damage":
-        if base_prediction < vehicle_value * 0.2:
-            adjusted_prediction = vehicle_value * 0.35
-            reasoning.append(f"Major damage increased to 35% of vehicle value")
-        elif base_prediction > vehicle_value * 0.8:
-            adjusted_prediction = vehicle_value * 0.6
-            reasoning.append(f"Major damage capped at 60% of vehicle value")
+    reasoning = [severity_reasoning]
+    if regional_reasoning:
+        reasoning.append(regional_reasoning)
 
-    elif incident_severity == "Minor Damage":
-        if base_prediction > vehicle_value * 0.4:
-            adjusted_prediction = vehicle_value * 0.25
-            reasoning.append(f"Minor damage capped at 25% of vehicle value")
-
-    elif incident_severity == "Trivial Damage":
-        if base_prediction > vehicle_value * 0.15:
-            adjusted_prediction = vehicle_value * 0.08
-            reasoning.append(f"Trivial damage capped at 8% of vehicle value")
-
-    if adjusted_prediction > vehicle_value * 1.2:
-        adjusted_prediction = vehicle_value * 0.9
-        reasoning.append(f"Repair cost capped near total vehicle value")
+    if abs(base_prediction - adjusted_prediction) > 2000:
+        reasoning.append(f"Base ML model predicted ${base_prediction:,.0f}, adjusted to ${adjusted_prediction:,.0f}")
 
     adjusted_prediction = max(adjusted_prediction, 500)
+
+    bodily_injuries = features.get("bodily_injuries", 0)
+    if bodily_injuries and bodily_injuries > 0:
+        injury_cost = bodily_injuries * 5000
+        adjusted_prediction += injury_cost
+        reasoning.append(f"Added ${injury_cost:,.0f} for {bodily_injuries} bodily injury/injuries")
 
     return {
         "predicted_cost": adjusted_prediction,
         "base_model_prediction": base_prediction,
         "estimated_vehicle_value": vehicle_value,
         "confidence": confidence,
-        "reasoning": reasoning if reasoning else ["Standard model prediction"]
+        "reasoning": reasoning,
+        "valuation_details": value_metadata
     }

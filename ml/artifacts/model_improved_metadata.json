@@ -1,0 +1,13 @@
+{
+  "dataset": "insurance_claims.csv",
+  "target": "total_claim_amount",
+  "trained_at": "2025-10-21T17:08:10.111649",
+  "features_count": 51,
+  "training_samples": 800,
+  "validation_samples": 200,
+  "mae": 740.6049037044755,
+  "rmse": 1212.3364522160762,
+  "r2": 0.9977915031091671,
+  "median_ae": 410.1507547957249,
+  "mape": 1.9798575131655787
+}
