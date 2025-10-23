@@ -1,5 +1,5 @@
 
-# RepairHelper
+# Ripar
 
 A machine learning project for automotive repair cost estimation and claims processing.
 
@@ -9,4 +9,4 @@ A machine learning project for automotive repair cost estimation and claims proc
 - `ml/` - machine learning code
 - `backend/` - FastAPI service
 - `frontend/` - Streamlit UI
-- `notebooks/` - Jupyter notebooks for exploration
+
